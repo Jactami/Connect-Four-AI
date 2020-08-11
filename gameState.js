@@ -223,7 +223,8 @@ class GameState {
             }
         }
 
-        this.score = sum;
+        // round sum to prevent vagueness with floating point numbers
+        this.score = floor(sum * pow(10, 7)) / pow(10, 7);
     }
 
     /**
