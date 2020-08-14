@@ -17,11 +17,10 @@ class GameBoard {
 
     showBoard() {
         background(0);
-        noStroke();
 
         for (let i = 0; i < COLUMNS; i++) {
             for (let j = 0; j < ROWS; j++) {
-                this.drawCoin(i, j, this.grid[i][j], 255);
+                this.drawCoin(i, j, this.grid[i][j], 255, false);
             }
         }
     }
@@ -30,16 +29,28 @@ class GameBoard {
         if (row == -1)
             return;
 
-        this.drawCoin(column, row, val, 100);
+        this.drawCoin(column, row, val, 100, false);
     }
 
-    drawCoin(column, row, val, alpha) {
+    showLine(line) {
+        for (let coin of line) {
+            this.drawCoin(coin.column, coin.row, this.grid[coin.column][coin.row], 255, true);
+        }
+    }
+
+    drawCoin(column, row, val, alpha, isStroke) {
         if (val == 0) {
             fill(200);
         } else if (val == 1) {
             fill(255, 0, 0, alpha);
         } else {
             fill(255, 255, 0, alpha);
+        }
+        if (isStroke) {
+            strokeWeight(SPACE * 0.05);
+            stroke(0, 0, 255, alpha);
+        } else {
+            noStroke();
         }
         let cx = SPACE * column + SPACE * 0.5;
         let cy = height - SPACE * row - SPACE * 0.5;

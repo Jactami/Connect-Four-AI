@@ -9,6 +9,7 @@ class GameState {
         this.activePlayer = activePlayer;
         this.prevPlayer = prevPlayer;
         this.score;
+        this.line = [];
         this.action = {
             column: column,
             row: row
@@ -41,93 +42,56 @@ class GameState {
         if (isNaN(this.action.column) || isNaN(this.action.row))
             return false;
 
+        // check horizontally, vertically, diagonally (upwards + downwards)
+        return this.checkLine(1, 0) || this.checkLine(0, 1) || this.checkLine(1, 1) || this.checkLine(1, -1);
+    }
+
+    /**
+     * checks wether a line of four is filled by a player
+     * returns true if line is filled, e.g. game is won, false otherwise
+     */
+    checkLine(dc, dr) {
         let column = this.action.column;
         let row = this.action.row;
-        let sum;
+        let val = this.grid[column][row];
+        let sum = 1;
+        this.line.push({
+            column: column,
+            row: row
+        });
 
-        // check horizontally
-        sum = 1;
+        // move "right"
         for (let i = 1; i < 4; i++) {
-            if ((column + i) >= this.grid.length || this.grid[column + i][row] != this.prevPlayer) {
+            if (column + dc * i >= this.grid.length || row + dr * i >= this.grid[column].length || this.grid[column + dc * i][row + dr * i] != val || sum >= 4) {
                 break;
             } else {
                 sum++;
+                this.line.push({
+                    column: column + dc * i,
+                    row: row + dr * i
+                });
             }
         }
-        for (let i = 1; i < 4 && i >= 0; i++) {
-            if ((column - i) < 0 || this.grid[column - i][row] != this.prevPlayer) {
-                break;
-            } else {
-                sum++;
-            }
-        }
-        if (sum >= 4)
-            return true;
 
-        // check vertically
-        sum = 1;
+        // move "left"
         for (let i = 1; i < 4; i++) {
-            if ((row + i) >= this.grid[column].length || this.grid[column][row + i] != this.prevPlayer) {
+            if (column - dc * i < 0 || row - dr * i < 0 || this.grid[column - dc * i][row - dr * i] != val || sum >= 4) {
                 break;
             } else {
                 sum++;
+                this.line.push({
+                    column: column - dc * i,
+                    row: row - dr * i
+                });
             }
         }
-        for (let i = 1; i < 4; i++) {
-            if ((row - i) < 0 || this.grid[column][row - i] != this.prevPlayer) {
-                break;
-            } else {
-                sum++;
-            }
-        }
-        if (sum >= 4)
-            return true;
 
-        // check diagonally (upwards)
-        sum = 1;
-        for (let i = 1; i < 4; i++) {
-            if ((column + i) >= this.grid.length ||
-                (row + i) >= this.grid[column].length ||
-                this.grid[column + i][row + i] != this.prevPlayer) {
-                break;
-            } else {
-                sum++;
-            }
+        if (sum < 4) {
+            this.line = [];
+            return false;
         }
-        for (let i = 1; i < 4; i++) {
-            if ((column - i) < 0 || (row - i) < 0 || this.grid[column - i][row - i] != this.prevPlayer) {
-                break;
-            } else {
-                sum++;
-            }
-        }
-        if (sum >= 4)
-            return true;
 
-        // check diagonally (downwards)
-        sum = 1;
-        for (let i = 1; i < 4; i++) {
-            if ((column + i) >= this.grid.length ||
-                (row - i) < 0 ||
-                this.grid[column + i][row - i] != this.prevPlayer) {
-                break;
-            } else {
-                sum++;
-            }
-        }
-        for (let i = 1; i < 4; i++) {
-            if ((column - i) < 0 ||
-                (row + i) >= this.grid[column].length ||
-                this.grid[column - i][row + i] != this.prevPlayer) {
-                break;
-            } else {
-                sum++;
-            }
-        }
-        if (sum >= 4)
-            return true;
-
-        return false;
+        return true;
     }
 
     /**
@@ -153,96 +117,53 @@ class GameState {
     evalState() {
         let sum = 0;
 
-        // check horizontally (do not check last 3 columns in each row)
-        for (let column = 0; column < this.grid.length - 3; column++) {
-            for (let row = 0; row < this.grid[column].length; row++) {
-                let counterActive = 0;
-                let counterPrev = 0;
-                for (let i = 0; i < 4; i++) {
-                    let val = this.grid[column + i][row];
-                    if (val == this.prevPlayer) {
-                        counterPrev++;
-                    } else if (val == this.activePlayer) {
-                        counterActive++;
-                    }
-                }
-                sum += this.evalLine(counterActive, counterPrev);
-            }
-        }
+        // check horizontally
+        sum += this.evalLines(0, 3, 0, 0, 1, 0);
+        // check vertically
+        sum += this.evalLines(0, 0, 0, 3, 0, 1);
+        // check diagonally (upwards)
+        sum += this.evalLines(0, 3, 0, 3, 1, 1);
+        // check diagonally (downwards)
+        sum += this.evalLines(0, 3, 3, 0, 1, -1);
 
-        // check vertically (do not check last 3 rows in each column)
-        // not sure at all if a vertical line is useful as it can be easily countered and almost never wins
-        // maybe factor resutling value or remove it completly
-        for (let column = 0; column < this.grid.length; column++) {
-            for (let row = 0; row < this.grid[column].length - 3; row++) {
-                let counterActive = 0;
-                let counterPrev = 0;
-                for (let i = 0; i < 4; i++) {
-                    let val = this.grid[column][row + i];
-                    if (val == this.prevPlayer) {
-                        counterPrev++;
-                    } else if (val == this.activePlayer) {
-                        counterActive++;
-                    }
-                }
-                sum += this.evalLine(counterActive, counterPrev);
-            }
-        }
-
-        // check diagonally (upwards) (do not check last 3 rows or columns)
-        for (let column = 0; column < this.grid.length - 3; column++) {
-            for (let row = 0; row < this.grid[column].length - 3; row++) {
-                let counterActive = 0;
-                let counterPrev = 0;
-                for (let i = 0; i < 4; i++) {
-                    let val = this.grid[column + i][row + i];
-                    if (val == this.prevPlayer) {
-                        counterPrev++;
-                    } else if (val == this.activePlayer) {
-                        counterActive++;
-                    }
-                }
-                sum += this.evalLine(counterActive, counterPrev);
-            }
-        }
-
-        // check diagonally (downwards) (do not check last 3 columns and first 3 rows)
-        for (let column = 0; column < this.grid.length - 3; column++) {
-            for (let row = 3; row < this.grid[column].length; row++) {
-                let counterActive = 0;
-                let counterPrev = 0;
-                for (let i = 0; i < 4; i++) {
-                    let val = this.grid[column + i][row - i];
-                    if (val == this.prevPlayer) {
-                        counterPrev++;
-                    } else if (val == this.activePlayer) {
-                        counterActive++;
-                    }
-                }
-                sum += this.evalLine(counterActive, counterPrev);
-            }
-        }
-
-        // round sum to prevent vagueness with floating point numbers
         this.score = floor(sum * pow(10, 7)) / pow(10, 7);
     }
 
     /**
-     * evaluates a line of 4 to a calculated score by analysing the occurrences of each coin value
+     * evaluates lines of 4 to a calculated a score by analysing the occurrences of each coin value
      * however the evaluation is still not perfect and could be improved,
      * e.g. the amount of neutral spaces in a line could be used in the function
      * returns the calculated score
      */
-    evalLine(counterActive, counterPrev) {
-        if (counterPrev == 0 && counterActive != 0) {
-            // only the opponent has at least one coin in a potential line
-            // scale by 10% to value bad situations more than good ones (uncertain if a good idea)
-            return (counterActive * counterActive) * (-1.1);
-        } else if (counterPrev != 0 && counterActive == 0) {
-            // only the player has at least one coin in a potential line
-            return counterPrev * counterPrev;
+    evalLines(startC, endC, startR, endR, dc, dr) {
+        let sum = 0;
+
+        // loop through grid
+        for (let column = startC; column < this.grid.length - endC; column++) {
+            for (let row = startR; row < this.grid[column].length - endR; row++) {
+                let counterActive = 0;
+                let counterPrev = 0;
+                // get a line of 4
+                for (let i = 0; i < 4; i++) {
+                    let val = this.grid[column + i * dc][row + i * dr];
+                    if (val == this.prevPlayer) {
+                        counterPrev++;
+                    } else if (val == this.activePlayer) {
+                        counterActive++;
+                    }
+                }
+                // evaluate counters
+                if (counterPrev == 0 && counterActive != 0) {
+                    // only the opponent has at least one coin in a potential line
+                    // scale by 10% to value bad situations more than good ones (uncertain if a good idea)
+                    sum += (counterActive * counterActive) * (-1.1);
+                } else if (counterPrev != 0 && counterActive == 0) {
+                    // only the player has at least one coin in a potential line
+                    sum += counterPrev * counterPrev;
+                }
+                // neutral otherwise (both players have none or at least one coin in line)
+            }
         }
-        // return 0 otherwise (both players have none or at least one coin in line)
-        return 0;
+        return sum;
     }
 }

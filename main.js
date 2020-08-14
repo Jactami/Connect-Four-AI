@@ -36,6 +36,9 @@ function setup() {
 function draw() {
     board.showBoard();
 
+    // draw winning line if game is over
+    board.showLine(state.line);
+
     if (gamePaused)
         return;
 
@@ -49,6 +52,9 @@ function draw() {
     if (!gameFinished && activePlayer == botVal) {
         botAction();
     }
+
+
+
 }
 
 // handles user input
@@ -83,6 +89,7 @@ function evalGame(column, row) {
         activePlayer == botVal ? playerName = "Red" : playerName = "Yellow";
         setTimeout(() => {
             alert("Congratulations, " + playerName + "! You are the winner!");
+            redraw();
             setup();
         }, 100);
     } else if (state.isDraw()) {
