@@ -2,7 +2,7 @@ const COLUMNS = 7;
 const ROWS = 6;
 const SPACE = 100;
 
-const DEPTH = 7;
+const DEPTH = 9;
 
 let board;
 let botVal;
