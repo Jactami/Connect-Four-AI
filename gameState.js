@@ -14,14 +14,31 @@ class GameState {
             column: column,
             row: row
         };
+        this.pickOrder = this.calcPickOrder();
         this.children = [];
+    }
+
+    /**
+     * sorts all columns from the middle to the outer ones and returns them as an array
+     * middle columns usually include more options to get 4 in a line
+     * therefore middle insertions will be calculated and evaluated first boosting the performance of alpha-beta-pruning
+     */
+    calcPickOrder() {
+        let order = [];
+        let cols = this.grid.length;
+        for (let i = 0; i < cols; i++) {
+            let pick = cols / 2 + (1 - 2 * (i % 2)) * (i + 1) / 2;
+            pick = cols % 2 == 0 ? floor(pick) : ceil(pick - 1);
+            order.push(pick);
+        }
+        return order;
     }
 
     /**
      * calculates all possible following states by searching for applicable actions
      */
     calcChildren() {
-        for (let column = 0; column < this.grid.length; column++) {
+        for (let column of this.pickOrder) {
             for (let row = 0; row < this.grid[column].length; row++) {
                 if (this.grid[column][row] == 0) { // empty spot was found
                     // make new gameState and add it to children array
