@@ -71,7 +71,7 @@ function mousePressed() {
 }
 
 function botAction() {
-    // simulate next X possible turns (9 seems like a maximum regarding performance)
+    // simulate next X possible turns (8 seems like a maximum regarding performance)
     let action = bot.think(state, DEPTH, botVal);
     if (board.insert(action.column, action.row, botVal)) {
         evalGame(action.column, action.row)
