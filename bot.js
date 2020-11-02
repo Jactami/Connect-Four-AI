@@ -45,7 +45,7 @@ class Bot {
      */
     minimax(state, depth, finalDepth, alpha, beta, maximizing) {
         this.counter++;
-        let key = state.grid.toString();
+        let key = JSON.stringify(state.grid);
         // check if state was explored before
         if (this.dict.hasKey(key)) {
             let val = this.dict.get(key);
