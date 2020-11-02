@@ -5,6 +5,7 @@ class Bot {
     constructor(val) {
         this.val = val;
         this.actions = [];
+        this.dict = new p5.TypedDict();
         this.counter;
     }
 
@@ -14,6 +15,7 @@ class Bot {
      */
     think(state, depth) {
         let t0 = new Date().getTime();
+        this.dict.clear();
         this.counter = 0;
 
         let finalScore = this.minimax(state, depth, depth, -Infinity, Infinity, true);
@@ -42,6 +44,8 @@ class Bot {
      */
     minimax(state, depth, finalDepth, alpha, beta, maximizing) {
         this.counter++;
+        let key = state.grid.toString();
+        let score;
 
         if (state.isWon()) {
             // not sure if giving closer wins (/losses) a higher (/lower) score has noticeable influence
@@ -50,57 +54,65 @@ class Bot {
             } else { // opponent won
                 state.score = -10000 * (depth + 1);
             }
-            return state.score;
-        }
-
-        if (state.isDraw()) {
+            score = state.score;
+        } else if (state.isDraw()) {
             state.score = 0;
-            return state.score;
-        }
-
-        if (depth == 0) {
+            score = state.score;
+        } else if (depth == 0) {
             state.evalState();
-            return state.score;
-        }
+            score = state.score;
+        } else { // recursive part
+            state.calcChildren();
 
-        state.calcChildren();
+            if (maximizing) {
+                let maxScore = -Infinity;
+                // check if state was explored before
+                alpha = this.dict.hasKey(key) ? this.dict.get(key) : alpha;
+                if (alpha > beta)
+                    return alpha;
 
-        if (maximizing) {
-            let maxScore = -Infinity;
-            for (let child of state.children) {
-                let evalScore = this.minimax(child, depth - 1, depth, alpha, beta, false);
-                if (evalScore >= maxScore) {
-                    if (evalScore == maxScore && depth == finalDepth) {
-                        this.actions.push(child.action);
-                    } else if (evalScore > maxScore && depth == finalDepth) {
-                        this.actions = [child.action];
+                for (let child of state.children) {
+                    let evalScore = this.minimax(child, depth - 1, depth, alpha, beta, false);
+                    if (evalScore >= maxScore) {
+                        if (evalScore == maxScore && depth == finalDepth) {
+                            this.actions.push(child.action);
+                        } else if (evalScore > maxScore && depth == finalDepth) {
+                            this.actions = [child.action];
+                        }
+                        maxScore = evalScore;
                     }
-                    maxScore = evalScore;
+                    state.score = maxScore;
+                    alpha = max(alpha, evalScore);
+                    if (beta < alpha)
+                        break;
                 }
-                state.score = maxScore;
-                alpha = max(alpha, evalScore);
-                if (beta < alpha)
-                    break;
-            }
-            return maxScore;
-        } else {
-            let minScore = Infinity;
-            for (let child of state.children) {
-                let evalScore = this.minimax(child, depth - 1, depth, alpha, beta, true);
-                if (evalScore <= minScore) {
-                    if (evalScore == minScore && depth == finalDepth) {
-                        this.actions.push(child.action);
-                    } else if (evalScore < minScore && depth == finalDepth) {
-                        this.actions = [child.action];
+                score = maxScore;
+            } else { // minimizing
+                let minScore = Infinity;
+                // check if state was explored before
+                beta = this.dict.hasKey(key) ? this.dict.get(key) : beta;
+                if (alpha > beta)
+                    return beta;
+
+                for (let child of state.children) {
+                    let evalScore = this.minimax(child, depth - 1, depth, alpha, beta, true);
+                    if (evalScore <= minScore) {
+                        if (evalScore == minScore && depth == finalDepth) {
+                            this.actions.push(child.action);
+                        } else if (evalScore < minScore && depth == finalDepth) {
+                            this.actions = [child.action];
+                        }
+                        minScore = evalScore;
                     }
-                    minScore = evalScore;
+                    state.score = minScore;
+                    beta = min(beta, evalScore);
+                    if (beta < alpha)
+                        break;
                 }
-                state.score = minScore;
-                beta = min(beta, evalScore);
-                if (beta < alpha)
-                    break;
+                score = minScore;
             }
-            return minScore;
         }
+        this.dict.set(key, score);
+        return score;
     }
 }
