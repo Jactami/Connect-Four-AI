@@ -32,6 +32,7 @@ class Bot {
         console.log("possible actions", this.actions);
         console.log("chosen action", chosenAction);
         console.log("explored states", this.counter);
+        console.log("unique states", this.dict.size());
         console.log("execution time", deltaT);
 
         return chosenAction;
@@ -45,8 +46,21 @@ class Bot {
     minimax(state, depth, finalDepth, alpha, beta, maximizing) {
         this.counter++;
         let key = state.grid.toString();
-        let score;
+        // check if state was explored before
+        if (this.dict.hasKey(key)) {
+            let val = this.dict.get(key);
+            if (maximizing) {
+                alpha = val;
+                if (alpha > beta)
+                    return alpha;
+            } else { // minimizing
+                beta = val;
+                if (alpha > beta)
+                    return beta;
+            }
+        }
 
+        let score;
         if (state.isWon()) {
             // not sure if giving closer wins (/losses) a higher (/lower) score has noticeable influence
             if (state.prevPlayer == this.val) {
@@ -63,14 +77,8 @@ class Bot {
             score = state.score;
         } else { // recursive part
             state.calcChildren();
-
             if (maximizing) {
                 let maxScore = -Infinity;
-                // check if state was explored before
-                alpha = this.dict.hasKey(key) ? this.dict.get(key) : alpha;
-                if (alpha > beta)
-                    return alpha;
-
                 for (let child of state.children) {
                     let evalScore = this.minimax(child, depth - 1, depth, alpha, beta, false);
                     if (evalScore >= maxScore) {
@@ -89,11 +97,6 @@ class Bot {
                 score = maxScore;
             } else { // minimizing
                 let minScore = Infinity;
-                // check if state was explored before
-                beta = this.dict.hasKey(key) ? this.dict.get(key) : beta;
-                if (alpha > beta)
-                    return beta;
-
                 for (let child of state.children) {
                     let evalScore = this.minimax(child, depth - 1, depth, alpha, beta, true);
                     if (evalScore <= minScore) {
