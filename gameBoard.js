@@ -4,7 +4,7 @@
  */
 class GameBoard {
 
-    constructor() {
+    constructor() { // TODO: Chance [] to new Array(COLUMS)
         this.grid = [];
 
         for (let i = 0; i < COLUMNS; i++) {

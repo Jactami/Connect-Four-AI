@@ -50,6 +50,8 @@ function draw() {
 
     // bot moves
     if (!gameFinished && activePlayer == botVal) {
+        print(JSON.stringify(state.grid))
+
         botAction();
     }
 
@@ -108,4 +110,104 @@ function evalGame(column, row) {
     setTimeout(() => {
         gamePaused = false;
     }, 300);
+}
+
+
+/*
+ * builds a game from a given character sequence 
+ * (similar to Forsyth-Edwards-Notation in chess) 
+ * e.g.: "7/7/7/2y4/2ry3/1ryry2 r"
+ */
+function buildGameFromFEN(fen) {
+    // convert fen into single rows and indication of active player
+    let fenGrid, active;
+    [fenGrid, active] = fen.split(' ');
+    let rows = fenGrid.split('/');
+
+    // build empty board
+    let grid = new Array(COLUMNS);
+    for (let i = 0; i < COLUMNS; i++) {
+        grid[i] = new Array(ROWS);
+        for (let j = 0; j < ROWS; j++) {
+            grid[i][j] = 0;
+        }
+    }
+
+    // fill empty grid with coins according to fen
+    for (let i = 0; i < rows.length; i++) {
+        let row = rows[i];
+        let index = 0;
+        for (let c in row) {
+            let char = row[c];
+            let number = parseInt(char);
+            if (number) {
+                index += number;
+            } else {
+                let val = 0;
+                if (char === 'r') {
+                    val = botVal;
+                } else if (char === 'y') {
+                    val = usrVal;
+                }
+
+                grid[index][ROWS - i - 1] = val;
+                index++;
+            }
+        }
+    }
+
+    board.grid = grid;
+    state.grid = board.grid;
+
+    // set active player
+    if (active === 'r') {
+        activePlayer = botVal;
+    } else if (char === 'y') {
+        activePlayer = usrVal;
+    }
+}
+
+/*
+ * converts the current game state into a string representation
+ * (similar to Forsyth-Edwards-Notation in chess)
+ */
+function getFEN() {
+    let fen = "";
+
+    for (let i = ROWS - 1; i >= 0; i--) {
+        let sequence = 0;
+        for (let j = 0; j < COLUMNS; j++) {
+            let val = board.grid[j][i];
+
+            if (val === 0) {
+                sequence++;
+            } else {
+                if (sequence > 0) {
+                    fen += sequence;
+                    sequence = 0;
+                }
+                if (val === botVal) {
+                    fen += 'r';
+                } else if (val === usrVal) {
+                    fen += 'y';
+                }
+            }
+        }
+
+        if (sequence > 0) {
+            fen += sequence;
+        }
+
+        if (i !== 0) {
+            fen += '/'
+        }
+    }
+
+    if (activePlayer === botVal) {
+        fen += " r";
+    } else if (activePlayer === usrVal) {
+        fen += " y";
+    }
+
+    return fen;
 }
