@@ -44,7 +44,7 @@ function draw() {
 
     // hover coin under current mouse position
     if (!gameFinished && activePlayer == usrVal) {
-        let pos = board.getCoinPostion();
+        let pos = board.getCoinPosition();
         board.hoverCoin(pos.column, pos.row, usrVal);
     }
 
@@ -64,7 +64,7 @@ function mousePressed() {
     if (activePlayer == botVal)
         return;
 
-    let pos = board.getCoinPostion();
+    let pos = board.getCoinPosition();
 
     // try to insert coin and (if successful) evaluate game
     if (board.insert(pos.column, pos.row, usrVal)) {

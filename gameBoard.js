@@ -38,7 +38,7 @@ class GameBoard {
         }
     }
 
-    drawCoin(column, row, val, alpha, isStroke) {
+    drawCoin(column, row, val, alpha, highlight) {
         if (val == 0) {
             fill(200);
         } else if (val == 1) {
@@ -46,7 +46,7 @@ class GameBoard {
         } else {
             fill(255, 255, 0, alpha);
         }
-        if (isStroke) {
+        if (highlight) {
             strokeWeight(SPACE * 0.05);
             stroke(0, 0, 255, alpha);
         } else {
@@ -73,7 +73,7 @@ class GameBoard {
      * returns the column and row under current mouse position
      * returns -1 if mouse position is outside of board
      */
-    getCoinPostion() {
+    getCoinPosition() {
         if (mouseX >= width || mouseX < 0 || mouseY >= height || mouseY < 0)
             return {
                 row: -1,

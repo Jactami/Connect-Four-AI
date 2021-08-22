@@ -65,7 +65,7 @@ class GameState {
 
     /**
      * checks wether a line of four is filled by a player
-     * returns true if line is filled, e.g. game is won, false otherwise
+     * returns true if line is filled, i.e. game is won, false otherwise
      */
     checkLine(dc, dr) {
         let column = this.action.column;
