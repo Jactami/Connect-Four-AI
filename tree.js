@@ -1,8 +1,9 @@
 class Tree {
 
-    constructor(state, column, row) {
+    constructor(state, hash, column, row) {
         this.state = state;
-        this.move = {
+        this.hash = hash;
+        this.move = { // move leading from previous to current state
             column,
             row
         };
@@ -31,18 +32,21 @@ class Tree {
     /**
      * calculates all possible following states by searching for applicable actions
      */
-    calcChildren() {
+    calcChildren(table) {
         for (let column of this.pickOrder) {
             for (let row = 0; row < this.state.rows; row++) {
                 if (this.state.board[column][row] === 0) { // empty spot was found
                     // make new sub tree and add it to children array
-                    let nextBoard = this.state.board.map((arr) => arr.slice(0));
-                    nextBoard[column][row] = this.state.current.val;
-                    let nextState = new Game(this.state.cols, this.state.rows);
-                    nextState.board = nextBoard;
-                    nextState.current = this.state.previous;
-                    nextState.previous = this.state.current;
-                    this.children.push(new Tree(nextState, column, row));
+                    let childBoard = this.state.board.map((arr) => arr.slice(0));
+                    let val = this.state.current.val;
+                    childBoard[column][row] = val;
+                    let childHash = table.addHash(this.hash, column, row, val);
+                    let childState = new Game(this.state.cols, this.state.rows);
+                    childState.board = childBoard;
+                    childState.current = this.state.previous;
+                    childState.previous = this.state.current;
+                    let child = new Tree(childState, childHash, column, row);
+                    this.children.push(child);
                     break;
                 }
             }
