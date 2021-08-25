@@ -1,3 +1,7 @@
+/**
+ * A class representing the structure of a Connect Four game
+ * implements game logic and visualisation
+ */
 class Game {
 
     constructor(cols, rows, size) {
@@ -6,6 +10,8 @@ class Game {
         this.size = size;
         this.board;
         this.line = [];
+
+        // player "enums"
         this.playerA = Object.freeze({
             name: "Red",
             val: 1,
@@ -18,12 +24,11 @@ class Game {
             code: 'y',
             color: [255, 255, 0]
         });
+
         this.current;
         this.previous;
         this.over = false;
         this.paused = false;
-
-        this.newGame(random([this.playerA, this.playerB]));
     }
 
     getEmptyBoard() {
@@ -47,12 +52,16 @@ class Game {
 
         if (currentPlayer) {
             this.current = currentPlayer;
-        } else {
+        } else { // random player starts game
             this.current = random([this.playerA, this.playerB]);
         }
         this.previous = this.current === this.playerA ? this.playerB : this.playerA;
     }
 
+    /**
+     * inserts a coin into the board with the given position
+     * fails if the position is invalid
+     */
     makeMove(x, y) {
         let pos = this.getCoinPosition(x, y);
 
@@ -62,6 +71,10 @@ class Game {
         this.insertCoin(pos.column, pos.row, this.current.val);
     }
 
+    /**
+     * inserts a coin with a given value into the board at a valid position
+     * starts evaluation process and switches players turns
+     */
     insertCoin(column, row, val) {
         // place coin and eval if game is over
         this.board[column][row] = val;
@@ -79,6 +92,10 @@ class Game {
         }, 200);
     }
 
+    /**
+     * returns the column and row of the a given (x/y) position (e.g. mouse position)
+     * returns null if position is outside of board or column is full
+     */
     getCoinPosition(x, y) {
         if (x >= width || x < 0 || y >= height || y < 0)
             return null; // position not on board
@@ -96,6 +113,11 @@ class Game {
         return null; // no empty spot in column
     }
 
+    /*
+     * evaluates if the game is over, e.g. game is won by a player or is draw
+     * returns true if game is over, false otherwise
+     * also starts a new game if game is over  
+     */
     isGameOver(column, row) {
         if (this.isWon(column, row)) {
             let name = this.current.name;
@@ -115,6 +137,10 @@ class Game {
         return false;
     }
 
+    /**
+     * checks wether the previous player won by his move leading to the current board
+     * returns true if game is won, false otherwise
+     */
     isWon(column, row) {
         return this.checkLine(column, row, 1, 0) ||
             this.checkLine(column, row, 0, 1) ||
@@ -122,6 +148,10 @@ class Game {
             this.checkLine(column, row, 1, -1);
     }
 
+    /**
+     * checks wether a line of four is filled by a player
+     * returns true if line is filled, i.e. game is won, false otherwise
+     */
     checkLine(column, row, dc, dr) {
         let val = this.board[column][row];
         let sum = 1;
@@ -168,6 +198,11 @@ class Game {
         return true;
     }
 
+    /**
+     * checks whether the game is a draw by checking if for empty spots
+     * does not check if any side won a game
+     * returns true if the game is a draw, false otherwise
+     */
     isDraw() {
         // check if any empty spot in top row
         for (let i = 0; i < this.cols; i++) {

@@ -2,7 +2,7 @@
 An AI playing _Connct Four_ versus a human competitor in JavaScript using [p5.js](https://p5js.org/).
 
 ## How does the AI work?
-The AI is based on the minimax algorithm with alpha-beta pruning. It calculates possible outcomes for every possible user action within the next 7 turns (as long as this step is not terminated by alpha-beta pruning). Each of these calculated game states is analysed in terms of every horizontal, vertical and diagonal line in size of 4. The final score associated with each game state depends on 3 questions:
+The AI is based on the minimax algorithm with alpha-beta pruning and transposition tables. It calculates possible outcomes for every possible user action within the next 9 turns (as long as this step is not terminated by alpha-beta pruning). Each of these calculated game states is analysed in terms of every horizontal, vertical and diagonal line in size of 4. The final score associated with each game state depends on 3 questions:
 1. Has any player filled a line, i.e. is the game won or lost?
 2. How close is either side to achieving a filled line?
 1. Is a filled line of 4 still possible for either side?

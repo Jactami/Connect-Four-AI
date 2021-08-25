@@ -45,7 +45,7 @@ class Table {
     }
 
     /*
-     * turns a board configuration into a unique hashcode
+     * returns a unique hash value for a given board configuration
      */
     hashBoard(board) {
         let hash = 0;
@@ -62,7 +62,7 @@ class Table {
     }
 
     /*
-     * retrives a hash value for a given coin in the board
+     * returns a hash value for a given coin in the board
      */
     hashValue(column, row, val) {
         let index = this.rows * column + row;
@@ -72,7 +72,7 @@ class Table {
     }
 
     /*
-     * adds to hash values by XOR operation 
+     * returns the sum (XOR operation) of a given hash value und the hash value of a given coin
      */
     addHash(hash, column, row, val) {
         return hash ^= this.hashValue(column, row, val);

@@ -13,14 +13,17 @@ class Bot {
      * simualates a given amount of next turns from a given state
      * returns the best possible move
      */
-    think(state, depth) {
+    think(game, depth) {
         let t0 = new Date().getTime();
 
         this.counter = 0;
+        // reset transposition table
         this.table.initTable();
-        let hash = this.table.hashBoard(state.board);
-        let tree = new Tree(state, hash, undefined, undefined);
-        let score = this.minimax(tree, depth, depth, -Infinity, Infinity, true);
+        // build initial state
+        let hash = this.table.hashBoard(game.board);
+        let state = new State(game.board, hash, game.cols, game.rows, game.current, game.previous, undefined, undefined);
+        // get minimax score
+        let score = this.minimax(state, depth, depth, -Infinity, Infinity, game.current === this.self);
 
         // statistically prefer move in the middle of array which is also the middle of the game board
         let mean = (this.moves.length - 1) / 2;
@@ -46,18 +49,18 @@ class Bot {
      * returns a set of the best (qually valued) moves possible
      * see: http://people.csail.mit.edu/plaat/mtdf.html#abmem
      */
-    minimax(tree, depth, finalDepth, alpha, beta, maximizing) {
+    minimax(state, depth, finalDepth, alpha, beta, maximizing) {
         // look up in transposition table
-        if (this.table.lower.hasKey(tree.hash)) {
-            let lower = this.table.lower.get(tree.hash);
+        if (this.table.lower.hasKey(state.hash)) {
+            let lower = this.table.lower.get(state.hash);
             if (lower >= beta)
                 return lower;
 
             alpha = max(alpha, lower);
         }
 
-        if (this.table.upper.hasKey(tree.hash)) {
-            let upper = this.table.upper.get(tree.hash);
+        if (this.table.upper.hasKey(state.hash)) {
+            let upper = this.table.upper.get(state.hash);
             if (upper <= alpha)
                 return upper;
 
@@ -68,35 +71,34 @@ class Bot {
         this.counter++;
 
         // terminal states: won and draw
-        if (tree.isWon()) {
+        if (state.isWon()) {
             // give faster wins a higher score
-            if (tree.state.previous === this.self) {
-                tree.score = 10000 * (depth + 1);
+            if (state.previous === this.self) {
+                state.score = 10000 * (depth + 1);
             } else { // opponent won
-                tree.score = -10000 * (depth + 1);
+                state.score = -10000 * (depth + 1);
             }
-            return tree.score;
+            return state.score;
         }
 
-        if (tree.isDraw()) {
-            tree.score = 0;
-            return tree.score;
+        if (state.isDraw()) {
+            state.score = 0;
+            return state.score;
         }
 
         // leaf state
         if (depth === 0) {
-            this.testCounter++;
-            tree.evalState();
-            return tree.score;
+            state.evalState();
+            return state.score;
         }
 
         // recursive step
-        tree.calcChildren(this.table);
+        state.calcChildren(this.table);
         let record;
         if (maximizing) {
             record = -Infinity;
             let a = alpha;
-            for (let child of tree.children) {
+            for (let child of state.children) {
                 let score = this.minimax(child, depth - 1, finalDepth, a, beta, false);
                 if (score >= record) {
                     if (score === record && depth === finalDepth) {
@@ -115,7 +117,7 @@ class Bot {
         } else {
             record = Infinity;
             let b = beta;
-            for (let child of tree.children) {
+            for (let child of state.children) {
                 let score = this.minimax(child, depth - 1, finalDepth, alpha, b, true);
                 if (score <= record) {
                     if (score === record && depth === finalDepth) {
@@ -135,15 +137,15 @@ class Bot {
 
         // add record score to transposition table
         if (record <= alpha) {
-            this.table.upper.set(tree.hash, record);
+            this.table.upper.set(state.hash, record);
         } else if (record > alpha && record < beta) {
-            this.table.lower.set(tree.hash, record);
-            this.table.upper.set(tree.hash, record);
+            this.table.lower.set(state.hash, record);
+            this.table.upper.set(state.hash, record);
         } else if (record >= beta) {
-            this.table.lower.set(tree.hash, record);
+            this.table.lower.set(state.hash, record);
         }
 
-        tree.score = record;
+        state.score = record;
         return record;
     }
 }
