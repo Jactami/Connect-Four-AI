@@ -3,7 +3,6 @@ const ROWS = 6;
 const SIZE = 100;
 let game;
 
-const DEPTH = 9;
 let bot;
 
 function setup() {
@@ -25,7 +24,7 @@ function draw() {
     }
 
     if (game.current === bot.self) { // bots turn
-        let move = bot.think(game, DEPTH);
+        let move = bot.think(game);
         game.insertCoin(move.column, move.row, bot.self.val);
     }
 }
