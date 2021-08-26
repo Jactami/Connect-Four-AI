@@ -4,6 +4,7 @@
 class Bot {
     constructor(self, opponent, cols, rows) {
         this.self = self;
+        this.opponent = opponent;
         this.moves = [];
         this.counter;
         this.table = new Table(cols, rows, self.val, opponent.val);
@@ -39,7 +40,7 @@ class Bot {
         console.log("chosen move", move);
         console.log("explored states", this.counter);
         console.log("execution time", dt);
-
+        console.log(state)
         return move;
     }
 
@@ -88,7 +89,7 @@ class Bot {
 
         // leaf state
         if (depth === 0) {
-            state.evalState();
+            state.evalState(this.self, this.opponent);
             return state.score;
         }
 
