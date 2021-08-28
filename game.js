@@ -119,7 +119,7 @@ class Game {
      * also starts a new game if game is over  
      */
     isGameOver(column, row) {
-        if (this.isWon(column, row)) {
+        if (this.isWonByMove(column, row)) {
             let name = this.current.name;
             setTimeout(() => {
                 alert(`Congratulations ${name}! You are the winner!`);
@@ -141,7 +141,7 @@ class Game {
      * checks wether the previous player won by his move leading to the current board
      * returns true if game is won, false otherwise
      */
-    isWon(column, row) {
+    isWonByMove(column, row) {
         return this.checkLine(column, row, 1, 0) ||
             this.checkLine(column, row, 0, 1) ||
             this.checkLine(column, row, 1, 1) ||

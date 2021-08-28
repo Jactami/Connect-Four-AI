@@ -10,6 +10,13 @@ function setup() {
     game = new Game(COLS, ROWS, SIZE);
     bot = new Bot(game.playerA, game.playerB, COLS, ROWS);
     game.newGame();
+    // draw empty board once
+    game.paused = true;
+    setTimeout(() => {
+        redraw();
+        game.paused = false;
+    }, 0);
+
 }
 
 function draw() {

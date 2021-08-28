@@ -5,6 +5,7 @@ class Bot {
     constructor(self, opponent, cols, rows) {
         this.self = self;
         this.opponent = opponent;
+        this.maxScore = 10000;
         this.moves = [];
         this.counter;
         this.tree;
@@ -22,11 +23,12 @@ class Bot {
         let hash = this.table.hashBoard(game.board);
         this.tree = new State(game.board, hash, game.cols, game.rows, game.current, game.previous, undefined, undefined);
 
-        // iterative deepening with fixed time window of 400 ms
+        // iterative deepening with fixed time window of 900 ms (seems like a sweet spot for efficiency and effectiveness)
         let depth = 1;
+        let maxDepth = game.cols * game.rows;
         let score = -Infinity;
         let t1 = t0;
-        while (t1 - t0 < 400 && depth < game.cols * game.rows) {
+        while (t1 - t0 < 900 && score % this.maxScore !== 0 && depth <= maxDepth) {
             // reset variables
             this.counter = 0;
             this.table.initTable();
@@ -37,10 +39,7 @@ class Bot {
             t1 = new Date().getTime();
         }
 
-        // statistically prefer move in the middle of array which is also the middle of the game board
-        let mean = (this.moves.length - 1) / 2;
-        let sd = 1.5;
-        let move = this.moves[constrain(round(randomGaussian(mean, sd)), 0, this.moves.length - 1)];
+        let move = random(this.moves);
 
         console.clear();
         console.log("execution time", t1 - t0);
@@ -50,6 +49,10 @@ class Bot {
         console.log("possible moves", this.moves);
         console.log("chosen move", move);
         console.log("game tree", this.tree);
+        if (score % this.maxScore === 0 && score !== 0) {
+            let winner = score > 0 ? this.self : this.opponent;
+            console.log(`%c${winner.name} can win in ${depth - 2} turns!`, "background: #222; color: #bada55");
+        }
 
         return move;
     }
@@ -82,12 +85,12 @@ class Bot {
         this.counter++;
 
         // terminal states: won and draw
-        if (state.isWon()) {
-            // give faster wins a higher score
+        if (state.isGameOver()) {
+            // give closer wins a higher score
             if (state.previous === this.self) {
-                state.score = 10000 * (depth + 1);
+                state.score = this.maxScore * (depth + 1);
             } else { // opponent won
-                state.score = -10000 * (depth + 1);
+                state.score = -this.maxScore * (depth + 1);
             }
             return state.score;
         }

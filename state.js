@@ -61,11 +61,11 @@ class State extends Game {
      * checks wether the previous player won by his action leading to the current game state
      * returns true if game is won, false otherwise
      */
-    isWon() {
+    isGameOver() {
         if (isNaN(this.move.column) || isNaN(this.move.row))
             return false;
 
-        return super.isWon(this.move.column, this.move.row);
+        return super.isWonByMove(this.move.column, this.move.row);
     }
 
     /**
@@ -84,7 +84,7 @@ class State extends Game {
         // check diagonally (downwards)
         sum += this.evalLines(0, 3, 3, 0, 1, -1, self, opponent);
 
-        this.score = floor(sum * pow(10, 7)) / pow(10, 7);
+        this.score = round(sum * 100) * 0.01; // round 3 decimal places 
     }
 
     /**
@@ -110,13 +110,13 @@ class State extends Game {
                         counterOpp++;
                     }
                 }
-                // evaluate counters; weights were found by comparing results from different searching depths
+                // evaluate counters
                 if (counterSelf === 0 && counterOpp !== 0) { // only opponent has a potential line
-                    sum -= (counterOpp * counterOpp) * 0.6; // 
+                    sum -= (counterOpp * counterOpp);
                 } else if (counterSelf !== 0 && counterOpp === 0) { // only player has a potential line
-                    sum += counterSelf * counterSelf * 1.3;
-                }
-                // neutral otherwise (both players have none or at least one coin in line)
+                    // weight own winning conditions higher as a result of experimental tests
+                    sum += counterSelf * counterSelf * 1.7;
+                } // neutral otherwise (both players have none or at least one coin in line)
             }
         }
         return sum;
